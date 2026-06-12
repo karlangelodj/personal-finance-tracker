@@ -1,0 +1,12 @@
+# Backend
+backend/target/
+backend/financetracker.db
+*.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
