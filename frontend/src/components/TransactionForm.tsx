@@ -1,37 +1,41 @@
 import { useState, useEffect } from 'react';
-import type { Expense, ExpenseFormData } from '../types/Expense';
+import type { Transaction, TransactionFormData, TransactionType } from '../types/Transaction';
 
-interface ExpenseFormProps {
-  onSubmit: (data: ExpenseFormData) => Promise<void>;
-  editingExpense: Expense | null;
+interface TransactionFormProps {
+  onSubmit: (data: TransactionFormData) => Promise<void>;
+  editingTransaction: Transaction | null;
   onCancelEdit: () => void;
+  defaultType: TransactionType;
 }
 
-const emptyForm: ExpenseFormData = {
-  date: '',
-  amount: 0,
-  category: '',
-  description: '',
-};
+function getEmptyForm(defaultType: TransactionType): TransactionFormData {
+  return {
+    date: '',
+    amount: 0,
+    type: defaultType,
+    category: '',
+    description: '',
+  };
+}
 
-function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProps) {
-  const [formData, setFormData] = useState<ExpenseFormData>(emptyForm);
+function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultType }: TransactionFormProps) {
+  const [formData, setFormData] = useState<TransactionFormData>(getEmptyForm(defaultType));
 
-  // When editingExpense changes, populate the form with its data
   useEffect(() => {
-    if (editingExpense) {
+    if (editingTransaction) {
       setFormData({
-        date: editingExpense.date,
-        amount: editingExpense.amount,
-        category: editingExpense.category,
-        description: editingExpense.description,
+        date: editingTransaction.date,
+        amount: editingTransaction.amount,
+        type: editingTransaction.type,
+        category: editingTransaction.category,
+        description: editingTransaction.description,
       });
     } else {
-      setFormData(emptyForm);
+      setFormData(getEmptyForm(defaultType));
     }
-  }, [editingExpense]);
+  }, [editingTransaction, defaultType]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -42,7 +46,7 @@ function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSubmit(formData);
-    setFormData(emptyForm);
+    setFormData(getEmptyForm(defaultType));
   };
 
   return (
@@ -74,6 +78,19 @@ function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProp
       </div>
 
       <div>
+        <label className="block text-sm text-slate-600 mb-1">Type</label>
+        <select
+          name="type"
+          value={formData.type}
+          onChange={handleChange}
+          className="w-full border border-slate-300 rounded px-3 py-2"
+        >
+          <option value="EXPENSE">Expense</option>
+          <option value="INCOME">Income</option>
+        </select>
+      </div>
+
+      <div>
         <label className="block text-sm text-slate-600 mb-1">Category</label>
         <input
           type="text"
@@ -85,7 +102,7 @@ function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProp
         />
       </div>
 
-      <div>
+      <div className="sm:col-span-2">
         <label className="block text-sm text-slate-600 mb-1">Description</label>
         <input
           type="text"
@@ -101,9 +118,9 @@ function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProp
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {editingExpense ? 'Update Expense' : 'Add Expense'}
+          {editingTransaction ? 'Update Transaction' : 'Add Transaction'}
         </button>
-        {editingExpense && (
+        {editingTransaction && (
           <button
             type="button"
             onClick={onCancelEdit}
@@ -117,4 +134,4 @@ function ExpenseForm({ onSubmit, editingExpense, onCancelEdit }: ExpenseFormProp
   );
 }
 
-export default ExpenseForm;
+export default TransactionForm;

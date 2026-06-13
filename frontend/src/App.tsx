@@ -1,40 +1,41 @@
 import { useState } from 'react';
-import { useExpenses } from './hooks/useExpenses';
-import ExpenseList from './components/ExpenseList';
-import ExpenseForm from './components/ExpenseForm';
-import type { Expense, ExpenseFormData } from './types/Expense';
+import { useTransactions } from './hooks/useTransactions';
+import TransactionList from './components/TransactionList';
+import TransactionForm from './components/TransactionForm';
+import type { Transaction, TransactionFormData } from './types/Transaction';
 
 function App() {
-  const { expenses, loading, error, addExpense, updateExpense, deleteExpense } = useExpenses();
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const { transactions, loading, error, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  const handleSubmit = async (data: ExpenseFormData) => {
-    if (editingExpense) {
-      await updateExpense(editingExpense.id, data);
-      setEditingExpense(null);
+  const handleSubmit = async (data: TransactionFormData) => {
+    if (editingTransaction) {
+      await updateTransaction(editingTransaction.id, data);
+      setEditingTransaction(null);
     } else {
-      await addExpense(data);
+      await addTransaction(data);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="max-w-3xl mx-auto bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-4">Expenses</h1>
+        <h1 className="text-2xl font-bold text-slate-800 mb-4">Transactions</h1>
 
-        <ExpenseForm
+        <TransactionForm
           onSubmit={handleSubmit}
-          editingExpense={editingExpense}
-          onCancelEdit={() => setEditingExpense(null)}
+          editingTransaction={editingTransaction}
+          onCancelEdit={() => setEditingTransaction(null)}
+          defaultType="EXPENSE"
         />
 
         {loading && <p>Loading...</p>}
         {error && <p className="text-red-600">{error}</p>}
 
-        <ExpenseList
-          expenses={expenses}
-          onEdit={setEditingExpense}
-          onDelete={deleteExpense}
+        <TransactionList
+          transactions={transactions}
+          onEdit={setEditingTransaction}
+          onDelete={deleteTransaction}
         />
       </div>
     </div>
