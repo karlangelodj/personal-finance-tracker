@@ -1,8 +1,7 @@
 package com.financetracker.backend.model;
 
-public enum QuestStatus {
+public enum GoalStatus {
     ACTIVE,
     COMPLETED,
-    FAILED,
     ABANDONED
 }

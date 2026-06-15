@@ -30,9 +30,6 @@ public class QuestRequestDTO {
     @NotNull(message = "Period end is required")
     private LocalDate periodEnd;
 
-    @PositiveOrZero(message = "XP reward cannot be negative")
-    private Integer xpReward = 0;
-
     @PositiveOrZero(message = "HP reward cannot be negative")
     private Integer hpReward = 0;
 
@@ -63,9 +60,6 @@ public class QuestRequestDTO {
 
     public LocalDate getPeriodEnd() { return periodEnd; }
     public void setPeriodEnd(LocalDate periodEnd) { this.periodEnd = periodEnd; }
-
-    public Integer getXpReward() { return xpReward; }
-    public void setXpReward(Integer xpReward) { this.xpReward = xpReward; }
 
     public Integer getHpReward() { return hpReward; }
     public void setHpReward(Integer hpReward) { this.hpReward = hpReward; }

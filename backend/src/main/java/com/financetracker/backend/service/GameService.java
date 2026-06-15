@@ -13,53 +13,41 @@ import org.springframework.stereotype.Service;
 @Service
 public class GameService {
 
-    private static final int XP_PER_LEVEL = 1000;
-    private static final int BASE_MAX_HP = 100;
-    private static final int HP_PER_LEVEL = 10;
+    private static final int MAX_HP = 100;
 
     private final TransactionRepository transactionRepository;
-    private final XpLogRepository xpLogRepository;
     private final CharacterStateRepository characterStateRepository;
+    private final XpLogRepository xpLogRepository;
 
     public GameService(TransactionRepository transactionRepository,
-                        XpLogRepository xpLogRepository,
-                        CharacterStateRepository characterStateRepository) {
+                       CharacterStateRepository characterStateRepository,
+                       XpLogRepository xpLogRepository) {
         this.transactionRepository = transactionRepository;
-        this.xpLogRepository = xpLogRepository;
         this.characterStateRepository = characterStateRepository;
+        this.xpLogRepository = xpLogRepository;
     }
 
     public GameStatusResponseDTO getGameStatus() {
         double gold = calculateGold();
-        int xp = calculateXp();
-        int level = (xp / XP_PER_LEVEL) + 1;
-        int xpIntoLevel = xp % XP_PER_LEVEL;
-        int maxHp = BASE_MAX_HP + (level - 1) * HP_PER_LEVEL;
-
         Rank rank = Rank.fromGold(gold);
         Rank nextRank = rank.next();
 
         CharacterState character = getOrCreateCharacterState();
-        int currentHp = Math.min(character.getCurrentHp(), maxHp);
+        int currentHp = Math.min(character.getCurrentHp(), MAX_HP);
 
         return new GameStatusResponseDTO(
                 gold,
-                xp,
-                level,
-                xpIntoLevel,
-                XP_PER_LEVEL,
                 rank.name(),
                 nextRank != null ? nextRank.name() : null,
                 nextRank != null ? nextRank.getThreshold() : null,
                 currentHp,
-                maxHp
+                MAX_HP
         );
     }
 
     /**
-     * Awards XP by inserting a new xp_log entry.
-     * Any future module (quests, bosses, achievements) calls this
-     * to grant XP without GameService needing to know the source's details.
+     * Kept for potential future use — infrastructure preserved,
+     * just not called from any active feature.
      */
     public void awardXp(int amount, String source, Long referenceId) {
         XpLog log = new XpLog();
@@ -67,6 +55,16 @@ public class GameService {
         log.setSource(source);
         log.setReferenceId(referenceId);
         xpLogRepository.save(log);
+    }
+
+    public CharacterState getOrCreateCharacterState() {
+        return characterStateRepository.findAll().stream()
+                .findFirst()
+                .orElseGet(() -> {
+                    CharacterState newState = new CharacterState();
+                    newState.setCurrentHp(MAX_HP);
+                    return characterStateRepository.save(newState);
+                });
     }
 
     // --- Helper methods ---
@@ -83,21 +81,5 @@ public class GameService {
                 .sum();
 
         return income - expenses;
-    }
-
-    private int calculateXp() {
-        return xpLogRepository.findAll().stream()
-                .mapToInt(XpLog::getAmount)
-                .sum();
-    }
-
-    private CharacterState getOrCreateCharacterState() {
-        return characterStateRepository.findAll().stream()
-                .findFirst()
-                .orElseGet(() -> {
-                    CharacterState newState = new CharacterState();
-                    newState.setCurrentHp(100);
-                    return characterStateRepository.save(newState);
-                });
     }
 }

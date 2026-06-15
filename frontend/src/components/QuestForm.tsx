@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCategories } from '../hooks/useCategories';
 import type { QuestFormData, QuestType, QuestPeriod } from '../types/Quest';
 
 interface QuestFormProps {
@@ -14,18 +15,18 @@ const emptyForm: QuestFormData = {
   period: 'MONTHLY',
   periodStart: '',
   periodEnd: '',
-  xpReward: 50,
-  hpReward: 10,
+  hpReward: 50,
   hpPenalty: 10,
 };
 
 function QuestForm({ onSubmit }: QuestFormProps) {
   const [formData, setFormData] = useState<QuestFormData>(emptyForm);
   const [isOpen, setIsOpen] = useState(false);
+  const { categories } = useCategories('EXPENSE');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const numericFields = ['targetAmount', 'xpReward', 'hpReward', 'hpPenalty'];
+    const numericFields = ['targetAmount', 'hpReward', 'hpPenalty'];
     setFormData((prev) => ({
       ...prev,
       [name]: numericFields.includes(name) ? Number(value) : value,
@@ -48,7 +49,7 @@ function QuestForm({ onSubmit }: QuestFormProps) {
         onClick={() => setIsOpen(true)}
         className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 mb-6"
       >
-        + New Quest
+        + New Custom Quest
       </button>
     );
   }
@@ -95,11 +96,15 @@ function QuestForm({ onSubmit }: QuestFormProps) {
       {needsCategory && (
         <div>
           <label className="block text-sm text-slate-600 mb-1">Category</label>
-          <input
-            type="text" name="category" value={formData.category} onChange={handleChange} required
-            className="w-full border border-slate-300 rounded px-3 py-2"
-            placeholder="e.g. Groceries"
-          />
+          <select name="category" value={formData.category} onChange={handleChange} required
+            className="w-full border border-slate-300 rounded px-3 py-2">
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>
+                {cat.icon} {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -107,8 +112,8 @@ function QuestForm({ onSubmit }: QuestFormProps) {
         <div>
           <label className="block text-sm text-slate-600 mb-1">Target Amount</label>
           <input
-            type="number" name="targetAmount" value={formData.targetAmount} onChange={handleChange} required
-            step="0.01" min="0"
+            type="number" name="targetAmount" value={formData.targetAmount}
+            onChange={handleChange} required step="0.01" min="0"
             className="w-full border border-slate-300 rounded px-3 py-2"
           />
         </div>
@@ -117,7 +122,8 @@ function QuestForm({ onSubmit }: QuestFormProps) {
       <div>
         <label className="block text-sm text-slate-600 mb-1">Period Start</label>
         <input
-          type="date" name="periodStart" value={formData.periodStart} onChange={handleChange} required
+          type="date" name="periodStart" value={formData.periodStart}
+          onChange={handleChange} required
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
@@ -125,41 +131,37 @@ function QuestForm({ onSubmit }: QuestFormProps) {
       <div>
         <label className="block text-sm text-slate-600 mb-1">Period End</label>
         <input
-          type="date" name="periodEnd" value={formData.periodEnd} onChange={handleChange} required
+          type="date" name="periodEnd" value={formData.periodEnd}
+          onChange={handleChange} required
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-slate-600 mb-1">XP Reward</label>
+        <label className="block text-sm text-slate-600 mb-1">HP Reward</label>
         <input
-          type="number" name="xpReward" value={formData.xpReward} onChange={handleChange} min="0"
+          type="number" name="hpReward" value={formData.hpReward}
+          onChange={handleChange} min="0"
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="block text-sm text-slate-600 mb-1">HP Reward</label>
-          <input
-            type="number" name="hpReward" value={formData.hpReward} onChange={handleChange} min="0"
-            className="w-full border border-slate-300 rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-slate-600 mb-1">HP Penalty</label>
-          <input
-            type="number" name="hpPenalty" value={formData.hpPenalty} onChange={handleChange} min="0"
-            className="w-full border border-slate-300 rounded px-3 py-2"
-          />
-        </div>
+      <div>
+        <label className="block text-sm text-slate-600 mb-1">HP Penalty</label>
+        <input
+          type="number" name="hpPenalty" value={formData.hpPenalty}
+          onChange={handleChange} min="0"
+          className="w-full border border-slate-300 rounded px-3 py-2"
+        />
       </div>
 
       <div className="sm:col-span-2 flex gap-2">
-        <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+        <button type="submit"
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
           Create Quest
         </button>
-        <button type="button" onClick={() => setIsOpen(false)} className="bg-slate-300 text-slate-700 px-4 py-2 rounded hover:bg-slate-400">
+        <button type="button" onClick={() => setIsOpen(false)}
+          className="bg-slate-300 text-slate-700 px-4 py-2 rounded hover:bg-slate-400">
           Cancel
         </button>
       </div>

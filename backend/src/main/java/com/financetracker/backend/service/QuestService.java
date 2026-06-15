@@ -155,9 +155,6 @@ public class QuestService {
         questRepository.save(quest);
 
         if (result == QuestStatus.COMPLETED) {
-            if (quest.getXpReward() > 0) {
-                gameService.awardXp(quest.getXpReward(), "QUEST_COMPLETE", quest.getId());
-            }
             applyHpChange(quest.getHpReward());
         } else if (result == QuestStatus.FAILED) {
             applyHpChange(-quest.getHpPenalty());
@@ -167,16 +164,8 @@ public class QuestService {
     private void applyHpChange(int delta) {
         if (delta == 0) return;
 
-        CharacterState character = characterStateRepository.findAll().stream()
-                .findFirst()
-                .orElseGet(() -> {
-                    CharacterState newState = new CharacterState();
-                    newState.setCurrentHp(100);
-                    return characterStateRepository.save(newState);
-                });
-
-        int newHp = character.getCurrentHp() + delta;
-        newHp = Math.max(0, newHp); // floor at 0; ceiling vs maxHp handled by GameService display
+        CharacterState character = gameService.getOrCreateCharacterState();
+        int newHp = Math.max(0, character.getCurrentHp() + delta);
         character.setCurrentHp(newHp);
         characterStateRepository.save(character);
     }
@@ -192,7 +181,6 @@ public class QuestService {
         quest.setPeriod(dto.getPeriod());
         quest.setPeriodStart(dto.getPeriodStart());
         quest.setPeriodEnd(dto.getPeriodEnd());
-        quest.setXpReward(dto.getXpReward());
         quest.setHpReward(dto.getHpReward());
         quest.setHpPenalty(dto.getHpPenalty());
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useCategories } from '../hooks/useCategories';
 import type { Transaction, TransactionFormData, TransactionType } from '../types/Transaction';
 
 interface TransactionFormProps {
@@ -20,6 +21,7 @@ function getEmptyForm(defaultType: TransactionType): TransactionFormData {
 
 function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultType }: TransactionFormProps) {
   const [formData, setFormData] = useState<TransactionFormData>(getEmptyForm(defaultType));
+  const { categories } = useCategories(formData.type);
 
   useEffect(() => {
     if (editingTransaction) {
@@ -34,6 +36,11 @@ function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultTy
       setFormData(getEmptyForm(defaultType));
     }
   }, [editingTransaction, defaultType]);
+
+  // Reset category when type changes
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, category: '' }));
+  }, [formData.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -54,11 +61,8 @@ function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultTy
       <div>
         <label className="block text-sm text-slate-600 mb-1">Date</label>
         <input
-          type="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
+          type="date" name="date" value={formData.date}
+          onChange={handleChange} required
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
@@ -66,25 +70,16 @@ function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultTy
       <div>
         <label className="block text-sm text-slate-600 mb-1">Amount</label>
         <input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          step="0.01"
-          min="0.01"
-          required
+          type="number" name="amount" value={formData.amount}
+          onChange={handleChange} step="0.01" min="0.01" required
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
 
       <div>
         <label className="block text-sm text-slate-600 mb-1">Type</label>
-        <select
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2"
-        >
+        <select name="type" value={formData.type} onChange={handleChange}
+          className="w-full border border-slate-300 rounded px-3 py-2">
           <option value="EXPENSE">Expense</option>
           <option value="INCOME">Income</option>
         </select>
@@ -92,40 +87,34 @@ function TransactionForm({ onSubmit, editingTransaction, onCancelEdit, defaultTy
 
       <div>
         <label className="block text-sm text-slate-600 mb-1">Category</label>
-        <input
-          type="text"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-          className="w-full border border-slate-300 rounded px-3 py-2"
-        />
+        <select name="category" value={formData.category} onChange={handleChange} required
+          className="w-full border border-slate-300 rounded px-3 py-2">
+          <option value="">Select a category</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.icon} {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="sm:col-span-2">
         <label className="block text-sm text-slate-600 mb-1">Description</label>
         <input
-          type="text"
-          name="description"
-          value={formData.description}
+          type="text" name="description" value={formData.description}
           onChange={handleChange}
           className="w-full border border-slate-300 rounded px-3 py-2"
         />
       </div>
 
       <div className="sm:col-span-2 flex gap-2">
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
+        <button type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           {editingTransaction ? 'Update Transaction' : 'Add Transaction'}
         </button>
         {editingTransaction && (
-          <button
-            type="button"
-            onClick={onCancelEdit}
-            className="bg-slate-300 text-slate-700 px-4 py-2 rounded hover:bg-slate-400"
-          >
+          <button type="button" onClick={onCancelEdit}
+            className="bg-slate-300 text-slate-700 px-4 py-2 rounded hover:bg-slate-400">
             Cancel
           </button>
         )}
